@@ -113,8 +113,22 @@ static PPSSignaturePoint ViewPointToGL(CGPoint viewPoint, CGRect bounds, GLKVect
 @end
 
 
-@implementation PPSSignatureView
+@implementation PPSSignatureView{
+    struct {
+        unsigned int tap:1;
+        unsigned int pan:1;
+    } delegateRespondsTo;
+}
+@synthesize delegate;
 
+- (void)setDelegate:(id <SignatureViewDelegate>)aDelegate {
+    if (delegate != aDelegate) {
+        delegate = aDelegate;
+        
+        delegateRespondsTo.tap = [delegate respondsToSelector:@selector(tap:)];
+        delegateRespondsTo.pan = [delegate respondsToSelector:@selector(pan:)];
+    }
+}
 
 - (void)commonInit {
     context = [[EAGLContext alloc] initWithAPI:kEAGLRenderingAPIOpenGLES2];
@@ -269,6 +283,7 @@ static PPSSignaturePoint ViewPointToGL(CGPoint viewPoint, CGRect bounds, GLKVect
     }
     
     [self setNeedsDisplay];
+    [delegate tap];
 }
 
 
@@ -358,6 +373,7 @@ static PPSSignaturePoint ViewPointToGL(CGPoint viewPoint, CGRect bounds, GLKVect
     }
     
 	[self setNeedsDisplay];
+    [delegate pan];
 }
 
 
