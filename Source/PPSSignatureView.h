@@ -1,7 +1,7 @@
 #import <UIKit/UIKit.h>
 #import <GLKit/GLKit.h>
 
-@protocol SignatureViewDelegate <NSObject>
+@protocol PPSSignatureViewDelegate <NSObject>
 @optional
 - (void) didStartSigning;
 - (void) didEndSigning;
