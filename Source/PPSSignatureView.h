@@ -3,8 +3,9 @@
 
 @protocol SignatureViewDelegate <NSObject>
 @optional
-- (void)tap;
-- (void)pan;
+- (void) didStartSigning;
+- (void) didEndSigning;
+- (void) didClearSignature;
 @end
 
 @interface PPSSignatureView : GLKView

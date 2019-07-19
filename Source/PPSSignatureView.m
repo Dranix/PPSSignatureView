@@ -19,8 +19,8 @@ static float clearColor[4] = { 1, 1, 1, 0 };
 // Vertex structure containing 3D point and color
 struct PPSSignaturePoint
 {
-	GLKVector3		vertex;
-	GLKVector3		color;
+    GLKVector3        vertex;
+    GLKVector3        color;
 };
 typedef struct PPSSignaturePoint PPSSignaturePoint;
 
@@ -67,7 +67,7 @@ static GLKVector3 perpendicular(PPSSignaturePoint p1, PPSSignaturePoint p2) {
 }
 
 static PPSSignaturePoint ViewPointToGL(CGPoint viewPoint, CGRect bounds, GLKVector3 color) {
-
+    
     return (PPSSignaturePoint) {
         {
             (viewPoint.x / bounds.size.width * 2.0 - 1),
@@ -109,27 +109,13 @@ static PPSSignaturePoint ViewPointToGL(CGPoint viewPoint, CGRect bounds, GLKVect
     PPSSignaturePoint previousVertex;
     PPSSignaturePoint currentVelocity;
 }
+    
+    @end
 
-@end
 
-
-@implementation PPSSignatureView{
-    struct {
-        unsigned int tap:1;
-        unsigned int pan:1;
-    } delegateRespondsTo;
-}
-@synthesize delegate;
-
-- (void)setDelegate:(id <SignatureViewDelegate>)aDelegate {
-    if (delegate != aDelegate) {
-        delegate = aDelegate;
-        
-        delegateRespondsTo.tap = [delegate respondsToSelector:@selector(tap:)];
-        delegateRespondsTo.pan = [delegate respondsToSelector:@selector(pan:)];
-    }
-}
-
+@implementation PPSSignatureView
+    
+    
 - (void)commonInit {
     context = [[EAGLContext alloc] initWithAPI:kEAGLRenderingAPIOpenGLES2];
     
@@ -141,7 +127,7 @@ static PPSSignaturePoint ViewPointToGL(CGPoint viewPoint, CGRect bounds, GLKVect
         
         self.context = context;
         self.drawableDepthFormat = GLKViewDrawableDepthFormat24;
-		self.enableSetNeedsDisplay = YES;
+        self.enableSetNeedsDisplay = YES;
         
         // Turn on antialiasing
         self.drawableMultisample = GLKViewDrawableMultisample4X;
@@ -166,84 +152,85 @@ static PPSSignaturePoint ViewPointToGL(CGPoint viewPoint, CGRect bounds, GLKVect
         
     } else [NSException raise:@"NSOpenGLES2ContextException" format:@"Failed to create OpenGL ES2 context"];
 }
-
-
+    
+    
 - (id)initWithCoder:(NSCoder *)aDecoder
-{
-    if (self = [super initWithCoder:aDecoder]) [self commonInit];
-    return self;
-}
-
-
+    {
+        if (self = [super initWithCoder:aDecoder]) [self commonInit];
+        return self;
+    }
+    
+    
 - (id)initWithFrame:(CGRect)frame context:(EAGLContext *)ctx
-{
-    if (self = [super initWithFrame:frame context:ctx]) [self commonInit];
-    return self;
-}
-
-
+    {
+        if (self = [super initWithFrame:frame context:ctx]) [self commonInit];
+        return self;
+    }
+    
+    
 - (void)dealloc
-{
-    [self tearDownGL];
-    
-    if ([EAGLContext currentContext] == context) {
-        [EAGLContext setCurrentContext:nil];
+    {
+        [self tearDownGL];
+        
+        if ([EAGLContext currentContext] == context) {
+            [EAGLContext setCurrentContext:nil];
+        }
+        context = nil;
     }
-	context = nil;
-}
-
-
+    
+    
 - (void)drawRect:(CGRect)rect
-{
-    glClearColor(clearColor[0], clearColor[1], clearColor[2], clearColor[3]);
-    glClear(GL_COLOR_BUFFER_BIT);
-
-    [effect prepareToDraw];
+    {
+        glClearColor(clearColor[0], clearColor[1], clearColor[2], clearColor[3]);
+        glClear(GL_COLOR_BUFFER_BIT);
+        
+        [effect prepareToDraw];
+        
+        // Drawing of signature lines
+        if (length > 2) {
+            glBindVertexArrayOES(vertexArray);
+            glDrawArrays(GL_TRIANGLE_STRIP, 0, length);
+        }
+        
+        if (dotsLength > 0) {
+            glBindVertexArrayOES(dotsArray);
+            glDrawArrays(GL_TRIANGLE_STRIP, 0, dotsLength);
+        }
+    }
     
-    // Drawing of signature lines
-    if (length > 2) {
-        glBindVertexArrayOES(vertexArray);
-        glDrawArrays(GL_TRIANGLE_STRIP, 0, length);
-    }
-
-    if (dotsLength > 0) {
-        glBindVertexArrayOES(dotsArray);
-        glDrawArrays(GL_TRIANGLE_STRIP, 0, dotsLength);
-    }
-}
-
-
+    
 - (void)erase {
+    [self.signatureViewDelegate didClearSignature];
     length = 0;
     dotsLength = 0;
     self.hasSignature = NO;
-	
-	[self setNeedsDisplay];
-}
-
-
-
-- (UIImage *)signatureImage
-{
-	if (!self.hasSignature)
-		return nil;
-
-//    self.hidden = YES;
-//
-//    self.strokeColor = [UIColor whiteColor];
-//    [self setNeedsDisplay];
-    UIImage *screenshot = [self snapshot];
     
-//    self.strokeColor = nil;
-//
-//    self.hidden = NO;
-    return screenshot;
+    [self setNeedsDisplay];
 }
-
-
+    
+    
+    
+- (UIImage *)signatureImage
+    {
+        if (!self.hasSignature)
+        return nil;
+        
+        //    self.hidden = YES;
+        //
+        //    self.strokeColor = [UIColor whiteColor];
+        //    [self setNeedsDisplay];
+        UIImage *screenshot = [self snapshot];
+        
+        //    self.strokeColor = nil;
+        //
+        //    self.hidden = NO;
+        return screenshot;
+    }
+    
+    
 #pragma mark - Gesture Recognizers
-
-
+    
+    
 - (void)tap:(UITapGestureRecognizer *)t {
     CGPoint l = [t locationInView:self];
     
@@ -256,7 +243,7 @@ static PPSSignaturePoint ViewPointToGL(CGPoint viewPoint, CGRect bounds, GLKVect
         PPSSignaturePoint centerPoint = touchPoint;
         centerPoint.color = StrokeColor;
         addVertex(&dotsLength, centerPoint);
-
+        
         static int segments = 20;
         GLKVector2 radius = (GLKVector2){
             clamp(0.00001, 0.02, penThickness * generateRandom(0.5, 1.5)),
@@ -276,21 +263,20 @@ static PPSSignaturePoint ViewPointToGL(CGPoint viewPoint, CGRect bounds, GLKVect
             
             angle += M_PI * 2.0 / segments;
         }
-               
+        
         addVertex(&dotsLength, touchPoint);
         
         glBindBuffer(GL_ARRAY_BUFFER, 0);
     }
     
     [self setNeedsDisplay];
-    [delegate tap];
 }
-
-
+    
+    
 - (void)longPress:(UILongPressGestureRecognizer *)lp {
     [self erase];
 }
-
+    
 - (void)pan:(UIPanGestureRecognizer *)p {
     
     glBindBuffer(GL_ARRAY_BUFFER, vertexBuffer);
@@ -302,8 +288,8 @@ static PPSSignaturePoint ViewPointToGL(CGPoint viewPoint, CGRect bounds, GLKVect
     float distance = 0.;
     if (previousPoint.x > 0) {
         distance = sqrtf((l.x - previousPoint.x) * (l.x - previousPoint.x) + (l.y - previousPoint.y) * (l.y - previousPoint.y));
-    }    
-
+    }
+    
     float velocityMagnitude = sqrtf(v.x*v.x + v.y*v.y);
     float clampedVelocityMagnitude = clamp(VELOCITY_CLAMP_MIN, VELOCITY_CLAMP_MAX, velocityMagnitude);
     float normalizedVelocity = (clampedVelocityMagnitude - VELOCITY_CLAMP_MIN) / (VELOCITY_CLAMP_MAX - VELOCITY_CLAMP_MIN);
@@ -313,7 +299,7 @@ static PPSSignaturePoint ViewPointToGL(CGPoint viewPoint, CGRect bounds, GLKVect
     penThickness = penThickness * lowPassFilterAlpha + newThickness * (1 - lowPassFilterAlpha);
     
     if ([p state] == UIGestureRecognizerStateBegan) {
-        
+        [self.signatureViewDelegate didStartSigning];
         previousPoint = l;
         previousMidPoint = l;
         
@@ -323,8 +309,8 @@ static PPSSignaturePoint ViewPointToGL(CGPoint viewPoint, CGRect bounds, GLKVect
         
         addVertex(&length, startPoint);
         addVertex(&length, previousVertex);
-		
-		self.hasSignature = YES;
+        
+        self.hasSignature = YES;
         
     } else if ([p state] == UIGestureRecognizerStateChanged) {
         
@@ -356,14 +342,15 @@ static PPSSignaturePoint ViewPointToGL(CGPoint viewPoint, CGRect bounds, GLKVect
             PPSSignaturePoint v = ViewPointToGL(l, self.bounds, StrokeColor);
             [self addTriangleStripPointsForPrevious:previousVertex next:v];
             
-            previousVertex = v;            
+            previousVertex = v;
             previousThickness = penThickness;
         }
         
         previousPoint = l;
         previousMidPoint = mid;
-
+        
     } else if (p.state == UIGestureRecognizerStateEnded | p.state == UIGestureRecognizerStateCancelled) {
+        [self.signatureViewDelegate didEndSigning];
         
         PPSSignaturePoint v = ViewPointToGL(l, self.bounds, (GLKVector3){1, 1, 1});
         addVertex(&length, v);
@@ -372,19 +359,18 @@ static PPSSignaturePoint ViewPointToGL(CGPoint viewPoint, CGRect bounds, GLKVect
         addVertex(&length, previousVertex);
     }
     
-	[self setNeedsDisplay];
-    [delegate pan];
+    [self setNeedsDisplay];
 }
-
-
+    
+    
 - (void)setStrokeColor:(UIColor *)strokeColor {
     _strokeColor = strokeColor;
     [self updateStrokeColor];
 }
-
-
+    
+    
 #pragma mark - Private
-
+    
 - (void)updateStrokeColor {
     CGFloat red, green, blue, alpha, white;
     if (effect && self.strokeColor && [self.strokeColor getRed:&red green:&green blue:&blue alpha:&alpha]) {
@@ -393,8 +379,8 @@ static PPSSignaturePoint ViewPointToGL(CGPoint viewPoint, CGRect bounds, GLKVect
         effect.constantColor = GLKVector4Make(white, white, white, alpha);
     } else effect.constantColor = GLKVector4Make(0,0,0,1);
 }
-
-
+    
+    
 - (void)setBackgroundColor:(UIColor *)backgroundColor {
     [super setBackgroundColor:backgroundColor];
     
@@ -409,62 +395,62 @@ static PPSSignaturePoint ViewPointToGL(CGPoint viewPoint, CGRect bounds, GLKVect
         clearColor[2] = white;
     }
 }
-
+    
 - (void)bindShaderAttributes {
     glEnableVertexAttribArray(GLKVertexAttribPosition);
     glVertexAttribPointer(GLKVertexAttribPosition, 3, GL_FLOAT, GL_FALSE, sizeof(PPSSignaturePoint), 0);
-//    glEnableVertexAttribArray(GLKVertexAttribColor);
-//    glVertexAttribPointer(GLKVertexAttribColor, 3, GL_FLOAT, GL_FALSE,  6 * sizeof(GLfloat), (char *)12);
+    //    glEnableVertexAttribArray(GLKVertexAttribColor);
+    //    glVertexAttribPointer(GLKVertexAttribColor, 3, GL_FLOAT, GL_FALSE,  6 * sizeof(GLfloat), (char *)12);
 }
-
+    
 - (void)setupGL
-{
-    [EAGLContext setCurrentContext:context];
+    {
+        [EAGLContext setCurrentContext:context];
+        
+        effect = [[GLKBaseEffect alloc] init];
+        
+        [self updateStrokeColor];
+        
+        
+        glDisable(GL_DEPTH_TEST);
+        
+        // Signature Lines
+        glGenVertexArraysOES(1, &vertexArray);
+        glBindVertexArrayOES(vertexArray);
+        
+        glGenBuffers(1, &vertexBuffer);
+        glBindBuffer(GL_ARRAY_BUFFER, vertexBuffer);
+        glBufferData(GL_ARRAY_BUFFER, sizeof(SignatureVertexData), SignatureVertexData, GL_DYNAMIC_DRAW);
+        [self bindShaderAttributes];
+        
+        
+        // Signature Dots
+        glGenVertexArraysOES(1, &dotsArray);
+        glBindVertexArrayOES(dotsArray);
+        
+        glGenBuffers(1, &dotsBuffer);
+        glBindBuffer(GL_ARRAY_BUFFER, dotsBuffer);
+        glBufferData(GL_ARRAY_BUFFER, sizeof(SignatureDotsData), SignatureDotsData, GL_DYNAMIC_DRAW);
+        [self bindShaderAttributes];
+        
+        
+        glBindVertexArrayOES(0);
+        
+        
+        // Perspective
+        GLKMatrix4 ortho = GLKMatrix4MakeOrtho(-1, 1, -1, 1, 0.1f, 2.0f);
+        effect.transform.projectionMatrix = ortho;
+        
+        GLKMatrix4 modelViewMatrix = GLKMatrix4MakeTranslation(0.0f, 0.0f, -1.0f);
+        effect.transform.modelviewMatrix = modelViewMatrix;
+        
+        length = 0;
+        penThickness = 0.003;
+        previousPoint = CGPointMake(-100, -100);
+    }
     
-    effect = [[GLKBaseEffect alloc] init];
-    
-    [self updateStrokeColor];
-
-    
-    glDisable(GL_DEPTH_TEST);
-    
-    // Signature Lines
-    glGenVertexArraysOES(1, &vertexArray);
-    glBindVertexArrayOES(vertexArray);
-    
-    glGenBuffers(1, &vertexBuffer);
-    glBindBuffer(GL_ARRAY_BUFFER, vertexBuffer);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(SignatureVertexData), SignatureVertexData, GL_DYNAMIC_DRAW);
-    [self bindShaderAttributes];
     
     
-    // Signature Dots
-    glGenVertexArraysOES(1, &dotsArray);
-    glBindVertexArrayOES(dotsArray);
-    
-    glGenBuffers(1, &dotsBuffer);
-    glBindBuffer(GL_ARRAY_BUFFER, dotsBuffer);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(SignatureDotsData), SignatureDotsData, GL_DYNAMIC_DRAW);
-    [self bindShaderAttributes];
-    
-    
-    glBindVertexArrayOES(0);
-
-
-    // Perspective
-    GLKMatrix4 ortho = GLKMatrix4MakeOrtho(-1, 1, -1, 1, 0.1f, 2.0f);
-    effect.transform.projectionMatrix = ortho;
-    
-    GLKMatrix4 modelViewMatrix = GLKMatrix4MakeTranslation(0.0f, 0.0f, -1.0f);
-    effect.transform.modelviewMatrix = modelViewMatrix;
-    
-    length = 0;
-    penThickness = 0.003;
-    previousPoint = CGPointMake(-100, -100);
-}
-
-
-
 - (void)addTriangleStripPointsForPrevious:(PPSSignaturePoint)previous next:(PPSSignaturePoint)next {
     float toTravel = penThickness / 2.0;
     
@@ -480,7 +466,7 @@ static PPSSignaturePoint ViewPointToGL(CGPoint viewPoint, CGRect bounds, GLKVect
         
         difX = difX * ratio;
         difY = difY * ratio;
-                
+        
         PPSSignaturePoint stripPoint = {
             { p1.x + difX, p1.y + difY, 0.0 },
             StrokeColor
@@ -490,19 +476,19 @@ static PPSSignaturePoint ViewPointToGL(CGPoint viewPoint, CGRect bounds, GLKVect
         toTravel *= -1;
     }
 }
-
-
+    
+    
 - (void)tearDownGL
-{
-    [EAGLContext setCurrentContext:context];
+    {
+        [EAGLContext setCurrentContext:context];
+        
+        glDeleteVertexArraysOES(1, &vertexArray);
+        glDeleteBuffers(1, &vertexBuffer);
+        
+        glDeleteVertexArraysOES(1, &dotsArray);
+        glDeleteBuffers(1, &dotsBuffer);
+        
+        effect = nil;
+    }
     
-    glDeleteVertexArraysOES(1, &vertexArray);
-    glDeleteBuffers(1, &vertexBuffer);
-    
-    glDeleteVertexArraysOES(1, &dotsArray);
-    glDeleteBuffers(1, &dotsBuffer);
-    
-    effect = nil;
-}
-
-@end
+    @end
