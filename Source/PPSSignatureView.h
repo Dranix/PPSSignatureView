@@ -13,7 +13,7 @@
 @property (assign, nonatomic) UIColor *strokeColor;
 @property (assign, nonatomic) BOOL hasSignature;
 @property (strong, nonatomic) UIImage *signatureImage;
-@property (nonatomic, weak) id <SignatureViewDelegate> delegate;
+@property (weak, nonatomic) id<PPSSignatureViewDelegate> signatureViewDelegate;
 
 - (void)erase;
 
